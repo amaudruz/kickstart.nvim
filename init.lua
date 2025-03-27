@@ -95,6 +95,15 @@ vim.opt.scrolloff = 10
 -- See `:help 'confirm'`
 vim.opt.confirm = true
 
+vim.keymap.set('n', '<localleader>mi', ':MoltenInit<CR>', { silent = true, desc = 'Initialize the plugin' })
+vim.keymap.set('n', '<localleader>e', ':MoltenEvaluateOperator<CR>', { silent = true, desc = 'run operator selection' })
+vim.keymap.set('n', '<localleader>rl', ':MoltenEvaluateLine<CR>', { silent = true, desc = 'evaluate line' })
+vim.keymap.set('n', '<localleader>rr', ':MoltenReevaluateCell<CR>', { silent = true, desc = 're-evaluate cell' })
+vim.keymap.set('v', '<localleader>r', ':<C-u>MoltenEvaluateVisual<CR>gv', { silent = true, desc = 'evaluate visual selection' })
+vim.keymap.set('n', '<localleader>rd', ':MoltenDelete<CR>', { silent = true, desc = 'molten delete cell' })
+vim.keymap.set('n', '<localleader>oh', ':MoltenHideOutput<CR>', { silent = true, desc = 'hide output' })
+vim.keymap.set('n', '<localleader>os', ':noautocmd MoltenEnterOutput<CR>', { silent = true, desc = 'show/enter output' })
+
 -- Remap Shift+K to go to previous paragraph (same as '{')
 vim.keymap.set({ 'n', 'v' }, 'K', '{', { noremap = true, silent = true })
 
@@ -115,8 +124,6 @@ vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
 vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
 vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
-
-vim.keymap.set('n', '<S-Enter>', ':MoltenNext<CR>')
 
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
@@ -173,7 +180,8 @@ require('lazy').setup({
     init = function()
       -- these are examples, not defaults. Please see the readme
       vim.g.molten_image_provider = 'image.nvim'
-      vim.g.molten_output_win_max_height = 20
+
+      olten_output_win_max_height = 20
     end,
   },
 
@@ -248,7 +256,7 @@ require('lazy').setup({
   {
     'm4xshen/autoclose.nvim',
     config = function()
-      require('autoclose').setup()
+      require('autoclose').setup { touch_regex = '[%w(%[{]' }
     end,
   },
 
