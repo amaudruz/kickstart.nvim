@@ -95,6 +95,50 @@ vim.opt.scrolloff = 10
 -- See `:help 'confirm'`
 vim.opt.confirm = true
 
+vim.keymap.set('n', '<leader>gh', function()
+  local target_win = vim.fn.winnr 'h' -- 'l' for right window; use 'h' for left
+  local win_id = vim.fn.win_getid(target_win)
+
+  local params = vim.lsp.util.make_position_params()
+  vim.lsp.buf_request(0, 'textDocument/declaration', params, function(_, result)
+    if not result or not result[1] then
+      return
+    end
+    local location = result[1]
+    local uri = location.uri or location.targetUri
+    local range = location.range or location.targetRange
+    local fname = vim.uri_to_fname(uri)
+    local line = range.start.line
+    local character = range.start.character
+
+    vim.api.nvim_set_current_win(win_id)
+    vim.cmd('edit ' .. fname)
+    vim.api.nvim_win_set_cursor(win_id, { line + 1, character })
+  end)
+end, { silent = true, desc = 'Go to declaration, open on window to the right' })
+
+vim.keymap.set('n', '<leader>gl', function()
+  local target_win = vim.fn.winnr 'l' -- 'l' for right window; use 'h' for left
+  local win_id = vim.fn.win_getid(target_win)
+
+  local params = vim.lsp.util.make_position_params()
+  vim.lsp.buf_request(0, 'textDocument/declaration', params, function(_, result)
+    if not result or not result[1] then
+      return
+    end
+    local location = result[1]
+    local uri = location.uri or location.targetUri
+    local range = location.range or location.targetRange
+    local fname = vim.uri_to_fname(uri)
+    local line = range.start.line
+    local character = range.start.character
+
+    vim.api.nvim_set_current_win(win_id)
+    vim.cmd('edit ' .. fname)
+    vim.api.nvim_win_set_cursor(win_id, { line + 1, character })
+  end)
+end, { silent = true, desc = 'Go to declaration, open on window to the left' })
+
 vim.keymap.set('n', '<localleader>mi', ':MoltenInit<CR>', { silent = true, desc = 'Initialize the plugin' })
 vim.keymap.set('n', '<localleader>e', ':MoltenEvaluateOperator<CR>', { silent = true, desc = 'run operator selection' })
 vim.keymap.set('n', '<localleader>rl', ':MoltenEvaluateLine<CR>', { silent = true, desc = 'evaluate line' })
@@ -582,8 +626,15 @@ require('lazy').setup({
       local servers = {
         -- clangd = {},
         -- gopls = {},
-        pyright = {},
-        -- rust_analyzer = {},
+        pyright = {
+          settings = {
+            python = {
+              analysis = {
+                typeCheckingMode = 'off', -- or "off", or "strict"
+              },
+            },
+          },
+        }, -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
