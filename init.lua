@@ -631,6 +631,9 @@ require('lazy').setup({
             python = {
               analysis = {
                 typeCheckingMode = 'off', -- or "off", or "strict"
+                autoSearchPaths = true,
+                useLibraryCodeForTypes = true,
+                diagnosticMode = 'openFilesOnly',
               },
             },
           },
