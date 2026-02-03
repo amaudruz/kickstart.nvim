@@ -96,14 +96,15 @@ vim.opt.scrolloff = 10
 vim.opt.confirm = true
 
 vim.keymap.set('n', '<leader>gh', function()
-  local target_win = vim.fn.winnr 'h' -- 'l' for right window; use 'h' for left
+  local target_win = vim.fn.winnr 'h'
   local win_id = vim.fn.win_getid(target_win)
 
   local params = vim.lsp.util.make_position_params()
-  vim.lsp.buf_request(0, 'textDocument/declaration', params, function(_, result)
+  vim.lsp.buf_request(0, 'textDocument/definition', params, function(_, result)
     if not result or not result[1] then
       return
     end
+
     local location = result[1]
     local uri = location.uri or location.targetUri
     local range = location.range or location.targetRange
@@ -115,17 +116,18 @@ vim.keymap.set('n', '<leader>gh', function()
     vim.cmd('edit ' .. fname)
     vim.api.nvim_win_set_cursor(win_id, { line + 1, character })
   end)
-end, { silent = true, desc = 'Go to declaration, open on window to the right' })
+end, { silent = true, desc = 'Go to definition (left window)' })
 
 vim.keymap.set('n', '<leader>gl', function()
-  local target_win = vim.fn.winnr 'l' -- 'l' for right window; use 'h' for left
+  local target_win = vim.fn.winnr 'l'
   local win_id = vim.fn.win_getid(target_win)
 
   local params = vim.lsp.util.make_position_params()
-  vim.lsp.buf_request(0, 'textDocument/declaration', params, function(_, result)
+  vim.lsp.buf_request(0, 'textDocument/definition', params, function(_, result)
     if not result or not result[1] then
       return
     end
+
     local location = result[1]
     local uri = location.uri or location.targetUri
     local range = location.range or location.targetRange
@@ -137,7 +139,9 @@ vim.keymap.set('n', '<leader>gl', function()
     vim.cmd('edit ' .. fname)
     vim.api.nvim_win_set_cursor(win_id, { line + 1, character })
   end)
-end, { silent = true, desc = 'Go to declaration, open on window to the left' })
+end, { silent = true, desc = 'Go to definition (right window)' })
+
+vim.keymap.set('x', '<leader>p', [["_dP]])
 
 vim.keymap.set('n', '<localleader>mi', ':MoltenInit<CR>', { silent = true, desc = 'Initialize the plugin' })
 vim.keymap.set('n', '<localleader>e', ':MoltenEvaluateOperator<CR>', { silent = true, desc = 'run operator selection' })
@@ -241,7 +245,7 @@ require('lazy').setup({
       },
     },
   },
-
+  { 'ThePrimeagen/vim-be-good' },
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
@@ -296,6 +300,69 @@ require('lazy').setup({
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       },
     },
+  },
+  {
+    'Vigemus/iron.nvim',
+    config = function()
+      local iron = require 'iron.core'
+      local view = require 'iron.view'
+      local common = require 'iron.fts.common'
+
+      iron.setup {
+        config = {
+          scratch_repl = true,
+
+          repl_definition = {
+            sh = {
+              command = { 'zsh' },
+            },
+            python = {
+              command = { 'python3' },
+              format = common.bracketed_paste_python,
+              block_dividers = { '# %%', '#%%' },
+              env = { PYTHON_BASIC_REPL = '1' },
+            },
+          },
+
+          repl_filetype = function(_, ft)
+            return ft
+          end,
+
+          dap_integration = true,
+          repl_open_cmd = view.split.vertical.rightbelow '40%',
+        },
+
+        keymaps = {
+          toggle_repl = '<space>rr',
+          restart_repl = '<space>rR',
+          send_motion = '<space>sc',
+          visual_send = '<space>sc',
+          send_file = '<space>sf',
+          send_line = '<space>sl',
+          send_paragraph = '<space>sp',
+          send_until_cursor = '<space>su',
+          send_mark = '<space>sm',
+          send_code_block = '<space>sb',
+          send_code_block_and_move = '<space>sn',
+          mark_motion = '<space>mc',
+          mark_visual = '<space>mc',
+          remove_mark = '<space>md',
+          cr = '<space>s<cr>',
+          interrupt = '<space>s<space>',
+          exit = '<space>sq',
+          clear = '<space>cl',
+        },
+
+        highlight = {
+          italic = true,
+        },
+
+        ignore_blank_lines = true,
+      }
+
+      vim.keymap.set('n', '<space>rf', '<cmd>IronFocus<cr>', { desc = 'Iron Focus REPL' })
+      vim.keymap.set('n', '<space>rh', '<cmd>IronHide<cr>', { desc = 'Iron Hide REPL' })
+    end,
   },
   {
     'm4xshen/autoclose.nvim',
@@ -637,14 +704,15 @@ require('lazy').setup({
               },
             },
           },
-        }, -- rust_analyzer = {},
+        },
+        rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`ts_ls`) will work just fine
-        -- ts_ls = {},
+        ts_ls = {},
         --
 
         lua_ls = {
@@ -735,6 +803,7 @@ require('lazy').setup({
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
         python = { 'isort', 'black' },
+        rust = { 'rustfmt' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },
@@ -810,12 +879,13 @@ require('lazy').setup({
           -- Accept ([y]es) the completion.
           --  This will auto-import if your LSP supports it.
           --  This will expand snippets if the LSP sent a snippet.
-          ['<C-y>'] = cmp.mapping.confirm { select = true },
+          -- ['<C-y>'] = cmp.mapping.confirm { select = true },
 
           -- If you prefer more traditional completion keymaps,
           -- you can uncomment the following lines
           --['<CR>'] = cmp.mapping.confirm { select = true },
-          --['<Tab>'] = cmp.mapping.select_next_item(),
+
+          ['<Tab>'] = cmp.mapping.confirm { select = true },
           --['<S-Tab>'] = cmp.mapping.select_prev_item(),
 
           -- Manually trigger a completion from nvim-cmp.
@@ -928,7 +998,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'python', 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'python', 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'rust' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
