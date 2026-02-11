@@ -993,8 +993,9 @@ require('lazy').setup({
   },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    tag = 'v0.10.0',
     build = ':TSUpdate',
-    -- main = 'nvim-treesitter.configs', -- Sets main module to use for opts
+    main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
       ensure_installed = { 'python', 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'rust' },
@@ -1068,8 +1069,8 @@ require('lazy').setup({
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
 -- local ok, ts_lang = pcall(require, "vim.treesitter.language")
-if ok and ts_lang and not ts_lang.ft_to_lang then
-  ts_lang.ft_to_lang = function(ft)
-    return ft
-  end
-end
+-- if ok and ts_lang and not ts_lang.ft_to_lang then
+--   ts_lang.ft_to_lang = function(ft)
+--     return ft
+--   end
+-- end
